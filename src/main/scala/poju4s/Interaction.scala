@@ -37,7 +37,7 @@ trait Interaction {
     for (
       (g, t) <- specDescriptors(specsToRun.toList);
       thldr <- Some(Thread.currentThread.getContextClassLoader);
-      clz <- Some(thldr.loadClass(g));
+      clz <- Some(thldr.loadClass(g.getClassName()));
       req <- Request.aClass(clz);
       filtered <- req.filterWith(Description.createTestDescription(clz, t.name))
     ) {
@@ -48,10 +48,10 @@ trait Interaction {
             var failed: Option[Failure] = None
             var aFailed: Option[Failure] = None
             override def testAssumptionFailure(af: Failure) = { aFailed = Some(af) }
-            override def testIgnored(d: Description) = { res = r.Ignored(g, t) }
+            override def testIgnored(d: Description) = { res = r.Ignored(g.getClassName, t) }
             override def testFailure(f: Failure) = { failed = Some(f) }
             override def testFinished(d: Description) = {
-              res = failed.map(resolveFailure) orElse aFailed.map(resolveAssumption) getOrElse (r.Success(g, t))
+              res = failed.map(resolveFailure) orElse aFailed.map(resolveAssumption) getOrElse (r.Success(g.getClassName, t))
             }
           })
           juc.run(filtered)
@@ -62,19 +62,19 @@ trait Interaction {
     rs.reverse
   }
 
-  def specDescriptors(specs: List[Symbol]) = specs match {
+  private def specDescriptors(specs: List[Symbol]): List[(Description, Symbol)] = specs match {
     case Nil => list
     case _ => for((g, t) <- list if specs.contains(t)) yield (g, t)
   }
 
-  def list: List[(String, Symbol)] = listForClass(getClass)
+  def list: List[(Description, Symbol)] = listForClass(getClass)
 
-  def listForClass(clazz: Class[_]) = for (
+  def listForClass(clazz: Class[_]): List[(Description, Symbol)] = for (
     req <- Request.aClass(clazz).toList;
     run <- req.getRunner.toList;
     root <- run.getDescription.toList;
     chd <- root.getChildren.toList;
     TestAndClass(t, c) <- Some(chd.getDisplayName) if t != "initializationError"
-  ) yield { (c, Symbol(t)) }
+  ) yield { (chd, Symbol(chd.getMethodName)) }
 }
 

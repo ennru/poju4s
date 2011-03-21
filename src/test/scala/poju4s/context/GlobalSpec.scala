@@ -1,13 +1,16 @@
 package poju4s.context
 
 import org.junit._
-import org.junit.Assert._
+import runner.Description
+import Assert._
+
 import poju4s.result._
 
 class GlobalSpec {
   @Test
   def thisSpecIsInTheListOfGlobalSpecs {
-    val thisSpec = Global.list.filter(_ == (getClass.getName, 'thisSpecIsInTheListOfGlobalSpecs))
+    val method = 'thisSpecIsInTheListOfGlobalSpecs
+    val thisSpec = Global.list.filter(_ == (Description.createTestDescription(getClass, method.name), method))
     assertFalse(thisSpec.isEmpty)
   }
 

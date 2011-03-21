@@ -1,13 +1,15 @@
 package poju4s
 
 import org.junit._
-import org.junit.Assert._
+import runner.Description
+import Assert._
+
 import poju4s.{ result => r }
 import poju4s.example._
 
 class InteractionSpec extends Pending with StdOutLog {
   def with_example(body: Interaction => Unit) = body(new ExampleSpec)
-  def test(s: Symbol) = (classOf[ExampleSpec].getName, s)
+  def test(s: Symbol) = (Description.createTestDescription(classOf[ExampleSpec], s.name), s)
   val FAILURE = new Exception("Failure")
   val ERROR = new Exception("Error")
 
